@@ -168,21 +168,3 @@ class SOM:
 
         plt.tight_layout()
         plt.show()
-
-# som = SOM(grid_size=(4, 4), input_dim=2)
-# min_dist, bmu_coords = som.find_bmu(input_vector = np.array([0.8, 0.2]))
-# print(f"Минимальное расстояние: {min_dist}, BMU координаты: {bmu_coords}")
-
-# data = np.array([
-#     [0.1, 0.1], [0.1, 0.2],  # кластер 1
-#     [0.8, 0.1], [0.9, 0.2],  # кластер 2
-#     [0.1, 0.8], [0.2, 0.9],  # кластер 3
-#     [0.8, 0.8], [0.9, 0.9]   # кластер 4
-# ])
-# som.train(data=data, epochs=100)
-
-# print("Результаты\n", som.weights)
-
-# for sample in data:
-#     bmu, dist = som.find_bmu(sample)
-#     print(f"Образец {sample} -> BMU {bmu}, расстояние {dist:.4f}")
