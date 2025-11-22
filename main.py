@@ -172,7 +172,7 @@ def save_weights_to_csv(weights_history, filename="data/weights_history.csv"):
             # Округляем до 3 знаков
             current_weights = np.round(current_weights, 3)
             diffs = np.round(diffs, 3)
-
+            # сохранение в файл
             for idx in range(len(current_weights)):
                 r, g, b = current_weights[idx]
                 dr, dg, db = diffs[idx]
@@ -186,7 +186,7 @@ def animate_som(hexagonal=True, save_gif=False):
     np.random.seed(200)
 
     som = CSOM(hexagonal=hexagonal)
-    som.init_map(iterations=1000, xcells=10, ycells=10, width=10, height=10)
+    som.init_map(iterations=3000, xcells=20, ycells=20, width=20, height=20)
 
     rgb_list = []
     name_list = []
@@ -202,14 +202,14 @@ def animate_som(hexagonal=True, save_gif=False):
     steps = [s[0] for s in snapshots]
     save_errors_to_csv(q_errors, steps)
     save_weights_to_csv(snapshots)
-    print("✅ Данные сохранены в папку 'data/'")
+    print("Данные сохранены в папку 'data/'")
 
     # === 1. Анимация SOM ===
     fig1, (ax_map, ax_error) = plt.subplots(1, 2, figsize=(14, 6))
     ax_map.set_aspect('equal')
     ax_map.axis('off')
-
-    if hexagonal:
+    
+    if hexagonal: # визуализация в виде шестиугольников
         hex_radius = 0.5
         patches = []
         for idx in range(len(som.nodes)):
@@ -223,7 +223,7 @@ def animate_som(hexagonal=True, save_gif=False):
             ax_map.add_patch(hexagon)
         ax_map.set_xlim(-1, som.xcells + 1)
         ax_map.set_ylim(-1, som.ycells * np.sqrt(3) / 2 + 1)
-    else:
+    else: # визуализация в виде прямоугольников
         patches = []
         for idx in range(len(som.nodes)):
             i = idx // som.ycells
