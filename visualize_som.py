@@ -1,9 +1,9 @@
 from matplotlib import pyplot as plt
 import numpy as np
 
-def create_visualizations(som, mapping_df, u_matrix, neuron_clusters, feature_names, top10, k=4):
+def create_visualizations(som, mapping_df, u_matrix, neuron_clusters, feature_names, k=4):
 
-    create_u_matrix_visualization(u_matrix, mapping_df, top10)
+    create_u_matrix_visualization(u_matrix, mapping_df)
 
     create_neuron_clusters_visualization(neuron_clusters, k)
 
@@ -13,7 +13,7 @@ def create_visualizations(som, mapping_df, u_matrix, neuron_clusters, feature_na
 
     save_all_results(som, mapping_df, u_matrix, neuron_clusters)
 
-def create_u_matrix_visualization(u_matrix, mapping_df, top10):
+def create_u_matrix_visualization(u_matrix, mapping_df):
     plt.figure(figsize=(8, 6))
     plt.imshow(u_matrix, cmap='hot', interpolation='nearest')
     plt.title('U-Matrix (with counts overlay)')

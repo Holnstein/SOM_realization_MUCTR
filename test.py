@@ -8,7 +8,7 @@ from SOM import SOM
 def load_all_results(prefix="som_run"):
     """Загружает все сохраненные результаты"""
     try:
-        som = SOM(grid_size=(10, 10), input_dim=5)
+        som = SOM(grid_size=(7, 7), input_dim=5)
         som.weights = np.load(f"train_data/{prefix}_weights.npy")
 
         u_matrix = np.load(f"train_data/{prefix}_u_matrix.npy")
@@ -23,7 +23,6 @@ def load_all_results(prefix="som_run"):
 
 
 def create_custom_visualization(mapping_df, neuron_clusters, cluster_names):
-    """Создает кастомную визуализацию с вашими названиями"""
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
 
     # 1. Карта кластеров нейронов
@@ -49,7 +48,7 @@ def create_custom_visualization(mapping_df, neuron_clusters, cluster_names):
 
     # Выводим детальную информацию
     print("\n" + "=" * 60)
-    print("КЛАСТЕРЫ С ВАШИМИ НАЗВАНИЯМИ")
+    print("КЛАСТЕРЫ")
     print("=" * 60)
     for cluster_num, name in cluster_names.items():
         countries = mapping_df[mapping_df['neuron_cluster'] == cluster_num]['country'].tolist()
@@ -58,35 +57,32 @@ def create_custom_visualization(mapping_df, neuron_clusters, cluster_names):
 
 
 def main():
-    # 1. Загружаем сохраненные данные
+    # Загружаем сохраненные данные
     mapping_df, u_matrix, neuron_clusters = load_all_results("som_run")
     if mapping_df is None:
         return
 
-    # 2. ПОКАЗЫВАЕМ КАКИЕ КЛАСТЕРЫ БЫЛИ СОХРАНЕНЫ
+    # КАКИЕ КЛАСТЕРЫ БЫЛИ СОХРАНЕНЫ
     print("\nСОХРАНЕННЫЕ КЛАСТЕРЫ:")
     for cluster_num in sorted(mapping_df['neuron_cluster'].unique()):
         countries = mapping_df[mapping_df['neuron_cluster'] == cluster_num]['country'].tolist()
         print(f"Кластер {cluster_num}: {', '.join(countries[:5])}...")
 
-    # 3. ВВОДИМ СВОИ НАЗВАНИЯ
+    # 3. ВВОДИМ НАЗВАНИЯ
     print("\n" + "=" * 50)
-    print("ВВЕДИТЕ ВАШИ НАЗВАНИЯ КЛАСТЕРОВ")
-    print("=" * 50)
 
-    # МЕНЯЙТЕ ЭТИ НАЗВАНИЯ НА ОСНОВЕ ТОГО, ЧТО ВИДИТЕ ВЫШЕ!
     my_cluster_names = {
-        0: "Страны 2 мира",
-        1: "Бедные страны",
-        2: "Страны 2 мира",
-        3: "Развитые страны"
+        2: "2",
+        1: "1",
+        0: "0",
+        3: "3"
     }
 
-    print("Ваши названия:")
+    print("Названия кластеров:")
     for cluster_num, name in my_cluster_names.items():
         print(f"  Кластер {cluster_num} → '{name}'")
 
-    # 4. Создаем визуализацию с вашими названиями
+    # 4. Создаем визуализацию с названиями кластеров
     create_custom_visualization(mapping_df, neuron_clusters, my_cluster_names)
 
 if __name__ == "__main__":

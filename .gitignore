@@ -1,3 +1,7 @@
 /.venv
 .idea
 /__pycache__
+/results
+/train_data
+/graphics
+/SOM_wine/

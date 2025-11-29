@@ -11,7 +11,7 @@ def train_and_analyze_som():
     # инициализация структуры сети som
     som = SOM(grid_size=(10, 10), input_dim=data_for_som.shape[1])
     # обучение som
-    som.train(data=data_for_som, epochs=100)
+    som.train(data=data_for_som, epochs=600)
 
     # Расчет U-Matrix
     u_matrix = som.calculate_u_matrix()
@@ -27,7 +27,7 @@ def train_and_analyze_som():
     # Кластеризация нейронов
     weights = som.weights.reshape((-1, som.input_dim))
     k = 4
-    kmeans = KMeans(n_clusters=k, random_state=0).fit(weights)
+    kmeans = KMeans(n_clusters=k, random_state=42).fit(weights)
     neuron_clusters = kmeans.labels_.reshape(som.grid_size)
 
     # Добавляем кластеры к данным
@@ -47,14 +47,14 @@ def train_and_analyze_som():
     print(top10.to_string(index=False))
 
     # examples in top5 neurons
-    print("\nПримеры стран в 10 самых заполненных нейронах:")
-    examples = []
-    for _, r in top10.iterrows():
-        i, j = int(r['bmu_i']), int(r['bmu_j'])
-        subset = mapping_df[(mapping_df.bmu_i == i) & (mapping_df.bmu_j == j)]['country'].tolist()
-        examples.append({'neuron': (i, j), 'count': len(subset), 'countries_sample': subset[:15]})
-    examples_df = pd.DataFrame(examples)
-    print(examples_df.to_string(index=False))
+    # print("\nПримеры стран в 10 самых заполненных нейронах:")
+    # examples = []
+    # for _, r in top10.iterrows():
+    #     i, j = int(r['bmu_i']), int(r['bmu_j'])
+    #     subset = mapping_df[(mapping_df.bmu_i == i) & (mapping_df.bmu_j == j)]['country'].tolist()
+    #     examples.append({'neuron': (i, j), 'count': len(subset), 'countries_sample': subset[:15]})
+    # examples_df = pd.DataFrame(examples)
+    # print(examples_df.to_string(index=False))
 
     return som, mapping_df, u_matrix, neuron_clusters, feature_names, top10
 

@@ -79,11 +79,15 @@ class SOM:
     def train(self, data, epochs):
         errors = []
         initial_radius = max(self.grid_size[0], self.grid_size[1]) / 2
+        initial_learning_rate = 0.03
+        time_const = epochs / np.log(initial_radius)
 
         for epoch in range(epochs):
             # current_lr = self.A/(epoch + self.B)
             current_lr = 0.1 * (1 - epoch/epochs)
+            current_lr = initial_learning_rate * np.exp(-epoch / epochs)
             current_radius = initial_radius * (1 - epoch/epochs)
+            current_radius = initial_radius * np.exp(-epoch / time_const)
             indices = np.random.permutation(len(data))
             for i in indices:
                 sample = data[i]
@@ -100,6 +104,7 @@ class SOM:
         plt.xlabel('Эпоха')
         plt.ylabel('Error')
         plt.grid(True)
+        plt.savefig("graphics/error.png", dpi=300, bbox_inches='tight')
         plt.show()
 
     def calculate_u_matrix(self):
@@ -125,46 +130,46 @@ class SOM:
 
         return u_matrix
 
-    def plot_u_matrix(self):
-        """Визуализирует U-Matrix"""
-        u_matrix = self.calculate_u_matrix()
+    # def plot_u_matrix(self):
+    #     """Визуализирует U-Matrix"""
+    #     u_matrix = self.calculate_u_matrix()
+    #
+    #     plt.figure(figsize=(10, 8))
+    #     plt.imshow(u_matrix, cmap='hot', interpolation='nearest')
+    #     plt.colorbar(label='Расстояние между нейронами')
+    #     plt.title('U-Matrix SOM')
+    #     plt.xlabel('X координата нейрона')
+    #     plt.ylabel('Y координата нейрона')
+    #
+    #     # Добавляем сетку для лучшей читаемости
+    #     for i in range(self.grid_size[0] + 1):
+    #         plt.axhline(i - 0.5, color='white', linewidth=0.5)
+    #     for j in range(self.grid_size[1] + 1):
+    #         plt.axvline(j - 0.5, color='white', linewidth=0.5)
+    #
+    #     plt.tight_layout()
+    #     plt.show()
+    #
+    #     return u_matrix
 
-        plt.figure(figsize=(10, 8))
-        plt.imshow(u_matrix, cmap='hot', interpolation='nearest')
-        plt.colorbar(label='Расстояние между нейронами')
-        plt.title('U-Matrix SOM')
-        plt.xlabel('X координата нейрона')
-        plt.ylabel('Y координата нейрона')
-
-        # Добавляем сетку для лучшей читаемости
-        for i in range(self.grid_size[0] + 1):
-            plt.axhline(i - 0.5, color='white', linewidth=0.5)
-        for j in range(self.grid_size[1] + 1):
-            plt.axvline(j - 0.5, color='white', linewidth=0.5)
-
-        plt.tight_layout()
-        plt.show()
-
-        return u_matrix
-
-    def plot_component_planes(self, feature_names):
-        """Визуализирует карты компонентов для каждого признака"""
-        fig, axes = plt.subplots(2, 3, figsize=(15, 10))
-        axes = axes.ravel()
-
-        for idx, feature_name in enumerate(feature_names):
-            # Извлекаем веса для конкретного признака
-            component_plane = self.weights[:, :, idx]
-
-            im = axes[idx].imshow(component_plane, cmap='viridis', interpolation='hanning')
-            axes[idx].set_title(f'Признак: {feature_name}')
-            axes[idx].set_xlabel('X нейрона')
-            axes[idx].set_ylabel('Y нейрона')
-            plt.colorbar(im, ax=axes[idx])
-
-        # Скрываем лишние subplots
-        for idx in range(len(feature_names), len(axes)):
-            axes[idx].set_visible(False)
-
-        plt.tight_layout()
-        plt.show()
+    # def plot_component_planes(self, feature_names):
+    #     """Визуализирует карты компонентов для каждого признака"""
+    #     fig, axes = plt.subplots(2, 3, figsize=(15, 10))
+    #     axes = axes.ravel()
+    #
+    #     for idx, feature_name in enumerate(feature_names):
+    #         # Извлекаем веса для конкретного признака
+    #         component_plane = self.weights[:, :, idx]
+    #
+    #         im = axes[idx].imshow(component_plane, cmap='viridis', interpolation='hanning')
+    #         axes[idx].set_title(f'Признак: {feature_name}')
+    #         axes[idx].set_xlabel('X нейрона')
+    #         axes[idx].set_ylabel('Y нейрона')
+    #         plt.colorbar(im, ax=axes[idx])
+    #
+    #     # Скрываем лишние subplots
+    #     for idx in range(len(feature_names), len(axes)):
+    #         axes[idx].set_visible(False)
+    #
+    #     plt.tight_layout()
+    #     plt.show()
