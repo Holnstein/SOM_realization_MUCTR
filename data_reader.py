@@ -1,32 +1,40 @@
-import pandas as pd
-import numpy as np
-from sklearn.preprocessing import StandardScaler, MinMaxScaler
+import pickle
 
-def prepare_data(csv_file_path):
+import pandas as pd
+from sklearn.preprocessing import MinMaxScaler
+
+def load_all_data(csv_file_path):
     df = pd.read_csv(csv_file_path, sep=';')
 
     feature_columns = ['security_index', 'life_expectancy', 'co2_emissions',
                        'urban_population_in_slums', 'renewable_energy']
 
+    # df.dropna(inplace=True)
     features = df[feature_columns].values
     country_names = df['country_name'].values
 
-    df.dropna(inplace=True)
-    features = df[feature_columns].values
-    country_names = df['country_name'].values
+    return features, country_names, feature_columns
 
-    # print(f"Количество строк после очистки: {len(df)}")
-    # print(f"Удалено строк: {len(df) - len(df)}")
-
+def prepare_train_data(features_train_raw, country_names_train):
+    """Нормализует обучающие данные и возвращает нормализованные данные и scaler."""
     scaler = MinMaxScaler()
-    features_normalized = scaler.fit_transform(features)
+    features_train_normalized = scaler.fit_transform(features_train_raw)
+    print(f"Подготовлено обучающих данных: {len(features_train_normalized)} стран")
+    return features_train_normalized, scaler
 
-    # print(features_normalized)
+def prepare_test_data(features_test_raw, scaler):
+    """Применяет scaler к тестовым данным."""
+    features_test_normalized = scaler.transform(features_test_raw)
+    print(f"Подготовлено тестовых данных: {len(features_test_normalized)} стран")
+    return features_test_normalized
 
-    print(f"Подготовлено данных: {len(features_normalized)} стран")
-    print(f"Размерность: {features_normalized.shape}")
-    print(f"Диапазоны признаков после нормализации:")
-    # for i, col in enumerate(feature_columns):
-    #     print(f"  {col}: [{features_normalized[:, i].min():.2f}, {features_normalized[:, i].max():.2f}]")
+def save_scaler(scaler, filepath):
+    with open(filepath, 'wb') as f:
+        pickle.dump(scaler, f)
+    print(f"Scaler сохранен в {filepath}")
 
-    return features_normalized, country_names, feature_columns, scaler
+def load_scaler(filepath):
+    with open(filepath, 'rb') as f:
+        scaler = pickle.load(f)
+    print(f"Scaler загружен из {filepath}")
+    return scaler

@@ -1,22 +1,22 @@
+import os
+
 import pandas as pd
 from sklearn.cluster import KMeans
 import numpy as np
-import data_reader
 from SOM import SOM
+from config import GRID_SIZE, INPUT_DIM, EPOCHS
 
-def train_and_analyze_som():
-    # Загрузка данных о странах из csv
-    data_for_som, country_names, feature_names = data_reader.prepare_data('data-1762357600736.csv')
 
+def train_and_analyze_som(data_for_som, country_names, feature_names):
     # инициализация структуры сети som
-    som = SOM(grid_size=(10, 10), input_dim=data_for_som.shape[1])
+    som = SOM(grid_size=GRID_SIZE, input_dim=INPUT_DIM)
     # обучение som
-    som.train(data=data_for_som, epochs=600)
+    som.train(data=data_for_som, epochs=EPOCHS)
 
     # Расчет U-Matrix
     u_matrix = som.calculate_u_matrix()
 
-    # сопоставляем страны и нейроны
+    # сопоставление стран и нейронов
     rows = []
     for idx, country in enumerate(country_names):
         bmu, dist = som.find_bmu(data_for_som[idx])
@@ -46,6 +46,8 @@ def train_and_analyze_som():
     print("Топ-10 нейронов по числу стран (i, j, count):")
     print(top10.to_string(index=False))
 
+    save_all_results(som, mapping_df, u_matrix, neuron_clusters, prefix="train_som")
+
     # examples in top5 neurons
     # print("\nПримеры стран в 10 самых заполненных нейронах:")
     # examples = []
@@ -57,6 +59,16 @@ def train_and_analyze_som():
     # print(examples_df.to_string(index=False))
 
     return som, mapping_df, u_matrix, neuron_clusters, feature_names, top10
+
+def save_all_results(som, mapping_df, u_matrix, neuron_clusters, prefix="som_run"):
+    """Сохраняет все результаты обучения"""
+    os.makedirs("train_data", exist_ok=True)
+
+    np.save(f"train_data/{prefix}_weights.npy", som.weights)
+    np.save(f"train_data/{prefix}_u_matrix.npy", u_matrix)
+    np.save(f"train_data/{prefix}_neuron_clusters.npy", neuron_clusters)
+    mapping_df.to_csv(f"train_data/{prefix}_mapping.csv", index=False)
+    print("Результаты обучения сохранены")
 
 if __name__ == "__main__":
     som, mapping_df, u_matrix, neuron_clusters, feature_names, top10 = train_and_analyze_som()

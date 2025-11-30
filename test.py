@@ -1,23 +1,29 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-
 import data_reader
-from SOM import SOM
+import visualize_test
 
-def load_all_results(prefix="som_run"):
+from SOM import SOM
+import os
+
+from config import DATA_FILE_PATH, TRAIN_SIZE, GRID_SIZE, INPUT_DIM
+
+
+def load_all_results(prefix=""):
     """Загружает все сохраненные результаты"""
     try:
-        som = SOM(grid_size=(7, 7), input_dim=5)
-        som.weights = np.load(f"train_data/{prefix}_weights.npy")
+        # som = SOM(grid_size=(7, 7), input_dim=5)
+        # som.weights = np.load(f"train_data/{prefix}_weights.npy")
 
         u_matrix = np.load(f"train_data/{prefix}_u_matrix.npy")
         neuron_clusters = np.load(f"train_data/{prefix}_neuron_clusters.npy")
-        mapping_df = pd.read_csv(f"train_data/{prefix}_mapping.csv")
+        train_mapping_df = pd.read_csv(f"train_data/{prefix}_mapping.csv")
 
-        print("Все результаты загружены!")
-        return mapping_df, u_matrix, neuron_clusters
-    except FileNotFoundError:
+        print("Результаты обучения загружены")
+        return train_mapping_df, u_matrix, neuron_clusters
+    except FileNotFoundError as e:
+        print(f"Ошибка загрузки результатов обучения: {e}")
         print("Сначала запустите train_and_save_results.py")
         return None, None, None
 
@@ -57,10 +63,80 @@ def create_custom_visualization(mapping_df, neuron_clusters, cluster_names):
 
 
 def main():
+    csv_file_path = DATA_FILE_PATH
+    prefix = "train_som"
+
     # Загружаем сохраненные данные
-    mapping_df, u_matrix, neuron_clusters = load_all_results("som_run")
-    if mapping_df is None:
+    train_mapping_df, u_matrix, neuron_clusters = load_all_results(prefix)
+    if train_mapping_df is None:
         return
+
+    all_features, all_country_names, feature_columns = data_reader.load_all_data(csv_file_path)
+    print(f"Всего стран в датасете: {len(all_country_names)}")
+
+    test_start_idx = TRAIN_SIZE
+    test_end_idx = len(all_country_names)
+
+    if test_start_idx >= len(all_country_names):
+        print("Ошибка: Обучающая выборка больше или равна всему датасету.")
+        return
+
+    # Обучающие данные
+    features_train_raw = all_features[:TRAIN_SIZE]
+    country_names_train = all_country_names[:TRAIN_SIZE]
+
+    # Тестовые данные
+    features_test_raw = all_features[test_start_idx:test_end_idx]
+    country_names_test = all_country_names[test_start_idx:test_end_idx]
+
+    print(f"Обучающая выборка: {len(country_names_train)} стран (индексы 0-{TRAIN_SIZE - 1})")
+    print(f"Тестовая выборка: {len(country_names_test)} стран (индексы {test_start_idx}-{test_end_idx - 1})")
+
+    scaler_path = "train_data/scaler_train.pkl"
+    if not os.path.exists(scaler_path):
+        print(f"Ошибка: Scaler не найден по пути {scaler_path}. Обучите модель заново.")
+        return
+    scaler = data_reader.load_scaler(scaler_path)
+
+    features_test_normalized = data_reader.prepare_test_data(features_test_raw, scaler)
+
+    weights_path = f"train_data/{prefix}_weights.npy"
+    if not os.path.exists(weights_path):
+        print(f"Ошибка: Веса SOM не найдены по пути {weights_path}. Обучите модель заново.")
+        return
+    loaded_weights = np.load(weights_path)
+
+    som = SOM(grid_size=GRID_SIZE, input_dim=INPUT_DIM)
+    som.weights = loaded_weights  # Загрузка обученных весов
+    print("Обученная SOM загружена.")
+
+    print("\n--- Тестирование SOM на новых данных ---")
+    test_bmus = []
+    test_distances = []
+    for i, test_sample in enumerate(features_test_normalized):
+        bmu_coords, min_dist = som.find_bmu(test_sample)
+        test_bmus.append(bmu_coords)
+        test_distances.append(min_dist)
+        # print(f"Тестовый пример {i} ({country_names_test[i]}): BMU={bmu_coords}, dist={min_dist:.4f}")
+
+    avg_test_distance = np.mean(test_distances)
+    print(f"Среднее расстояние до BMU на ТЕСТОВОЙ выборке: {avg_test_distance:.4f}")
+
+    test_mapping_df = pd.DataFrame({
+        'country': country_names_test,
+        'bmu_i': [bmu[0] for bmu in test_bmus],
+        'bmu_j': [bmu[1] for bmu in test_bmus],
+        'distance_to_bmu': test_distances
+    })
+
+    test_mapping_df['neuron_cluster'] = test_mapping_df.apply(
+        lambda row: neuron_clusters[row['bmu_i'], row['bmu_j']], axis=1
+    )
+
+    test_mapping_df.to_csv(f"train_data/som_test_mapping.csv", index=False)
+    print(f"Результаты теста сохранены в train_data/som_test_mapping.csv")
+
+    mapping_df = train_mapping_df
 
     # КАКИЕ КЛАСТЕРЫ БЫЛИ СОХРАНЕНЫ
     print("\nСОХРАНЕННЫЕ КЛАСТЕРЫ:")
@@ -84,6 +160,18 @@ def main():
 
     # 4. Создаем визуализацию с названиями кластеров
     create_custom_visualization(mapping_df, neuron_clusters, my_cluster_names)
+
+    print("\n--- Распределение ТЕСТОВЫХ стран по кластерам ---")
+    test_cluster_counts = test_mapping_df['neuron_cluster'].value_counts().sort_index()
+    print(test_cluster_counts)
+
+    print("\n--- Сравнение распределений ---")
+    print("Обучающие:")
+    print(train_mapping_df['neuron_cluster'].value_counts().sort_index())
+    print("\nТестовые:")
+    print(test_cluster_counts)
+
+    visualize_test.visualize_test_results(u_matrix, neuron_clusters, train_mapping_df, test_mapping_df)
 
 if __name__ == "__main__":
     main()
