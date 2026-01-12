@@ -55,6 +55,7 @@ def create_component_planes(som, feature_names):
 
     for idx, fname in enumerate(feature_names):
         comp = som.weights[:, :, idx]
+        # создание тепловой карты по нейронам
         im = axes[idx].imshow(comp, interpolation='nearest', cmap='viridis')
         axes[idx].set_title(fname)
         axes[idx].invert_yaxis()

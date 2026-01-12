@@ -36,7 +36,7 @@ def create_custom_visualization(mapping_df, neuron_clusters, cluster_names):
     ax1.set_title('Карта кластеров нейронов', fontsize=14, fontweight='bold')
     ax1.invert_yaxis()
 
-    # 2. Столбчатая диаграмма с вашими названиями
+    # 2. Столбчатая диаграмма
     cluster_counts = mapping_df['neuron_cluster'].value_counts().sort_index()
     labels = [cluster_names[i] for i in cluster_counts.index]
 
@@ -110,7 +110,7 @@ def main():
     som.weights = loaded_weights  # Загрузка обученных весов
     print("Обученная SOM загружена.")
 
-    print("\n--- Тестирование SOM на новых данных ---")
+    print("\nТестирование SOM на новых данных")
     test_bmus = []
     test_distances = []
     for i, test_sample in enumerate(features_test_normalized):
@@ -134,7 +134,7 @@ def main():
     )
 
     test_mapping_df.to_csv(f"train_data/som_test_mapping.csv", index=False)
-    print(f"Результаты теста сохранены в train_data/som_test_mapping.csv")
+    print(f"Результаты теста сохранены в train_data/{prefix}_mapping.csv")
 
     mapping_df = train_mapping_df
 
